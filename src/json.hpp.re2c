@@ -6126,7 +6126,7 @@ class basic_json
     void dump(std::ostream& o,
               const bool pretty_print,
               const unsigned int indent_step,
-              const unsigned int current_indent = 0) const
+              unsigned int current_indent = 0) const
     {
         std::string s_object_empty = "{}";
         std::string s_object_open = "{";
@@ -6153,19 +6153,14 @@ class basic_json
         // whether the last output contained a newline
         bool last_newline = false;
 
-        // variable to hold indentation for recursive calls
-        unsigned int new_indent = current_indent;
-
-        const auto indent = [&new_indent, &last_newline]
+        const auto indent = [&current_indent, &last_newline]
         {
-            return last_newline ? string_t(new_indent, ' ') : "";
+            return last_newline ? string_t(current_indent, ' ') : "";
         };
 
         const auto open = [&](const std::string & s)
         {
-            const auto nl_idx = s.find('\n');
-
-            if (nl_idx == std::string::npos)
+            if (s.find('\n') == std::string::npos)
             {
                 o << s;
                 last_newline = false;
@@ -6173,7 +6168,7 @@ class basic_json
             else
             {
                 o << s;
-                new_indent += indent_step;
+                current_indent += indent_step;
                 last_newline = true;
             }
         };
@@ -6190,7 +6185,7 @@ class basic_json
             else
             {
                 o << s.substr(0, nl_idx + 1);
-                new_indent -= indent_step;
+                current_indent -= indent_step;
                 last_newline = true;
                 o << indent() << s.substr(nl_idx + 1);
                 last_newline = false;
@@ -6199,9 +6194,7 @@ class basic_json
 
         const auto infix = [&](const std::string & s)
         {
-            const auto nl_idx = s.find('\n');
-
-            if (nl_idx == std::string::npos)
+            if (s.find('\n') == std::string::npos)
             {
                 o << s;
                 last_newline = false;
@@ -6248,7 +6241,7 @@ class basic_json
                     infix(s_object_colon);
 
                     // value
-                    i->second.dump(o, pretty_print, indent_step, new_indent);
+                    i->second.dump(o, pretty_print, indent_step, current_indent);
                 }
 
                 // close object
@@ -6284,7 +6277,7 @@ class basic_json
                     o << indent();
 
                     // value
-                    i->dump(o, pretty_print, indent_step, new_indent);
+                    i->dump(o, pretty_print, indent_step, current_indent);
                 }
 
                 // close array

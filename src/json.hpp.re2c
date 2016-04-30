@@ -6128,8 +6128,62 @@ class basic_json
               const unsigned int indent_step,
               const unsigned int current_indent = 0) const
     {
+        std::string s_object_empty = "{}";
+        std::string s_object_open = "{";
+        std::string s_object_close = "}";
+        std::string s_object_comma = ",";
+        std::string s_object_colon = ":";
+        std::string s_array_empty = "[]";
+        std::string s_array_open = "[";
+        std::string s_array_close = "]";
+        std::string s_array_comma = ",";
+
+        if (pretty_print)
+        {
+            s_object_open = "{\n";
+            s_object_close = "\n}";
+            s_object_comma = ",\n";
+            s_object_colon = ": ";
+
+            s_array_open = "[\n";
+            s_array_close = "\n]";
+            s_array_comma = ",\n";
+        }
+
         // variable to hold indentation for recursive calls
         unsigned int new_indent = current_indent;
+
+        const auto open = [&](const std::string & s)
+        {
+            const auto nl_idx = s.find('\n');
+
+            if (nl_idx == std::string::npos)
+            {
+                o << s;
+            }
+            else
+            {
+                o << s.substr(0, nl_idx);
+                new_indent += indent_step;
+                o << s.substr(nl_idx);
+            }
+        };
+
+        const auto close = [&](const std::string & s)
+        {
+            const auto nl_idx = s.find('\n');
+
+            if (nl_idx == std::string::npos)
+            {
+                o << string_t(new_indent, ' ') << s;
+            }
+            else
+            {
+                o << s.substr(0, nl_idx + 1);
+                new_indent -= indent_step;
+                o << string_t(new_indent, ' ') << s.substr(nl_idx + 1);
+            }
+        };
 
         switch (m_type)
         {
@@ -6137,41 +6191,41 @@ class basic_json
             {
                 assert(m_value.object != nullptr);
 
+                // empty object
                 if (m_value.object->empty())
                 {
-                    o << "{}";
+                    o << s_object_empty;
                     return;
                 }
 
-                o << "{";
+                // open object
+                open(s_object_open);
 
-                // increase indentation
-                if (pretty_print)
-                {
-                    new_indent += indent_step;
-                    o << "\n";
-                }
-
+                // iterate values
                 for (auto i = m_value.object->cbegin(); i != m_value.object->cend(); ++i)
                 {
+                    // comma
                     if (i != m_value.object->cbegin())
                     {
                         o << (pretty_print ? ",\n" : ",");
                     }
-                    o << string_t(new_indent, ' ') << "\""
-                      << escape_string(i->first) << "\":"
-                      << (pretty_print ? " " : "");
+
+                    // indent
+                    o << string_t(new_indent, ' ');
+
+                    // key
+                    o << "\"" << escape_string(i->first) << "\"";
+
+                    // colon
+                    o << ":" << (pretty_print ? " " : "");
+
+                    // value
                     i->second.dump(o, pretty_print, indent_step, new_indent);
                 }
 
-                // decrease indentation
-                if (pretty_print)
-                {
-                    new_indent -= indent_step;
-                    o << "\n";
-                }
+                // close object
+                close(s_object_close);
 
-                o << string_t(new_indent, ' ') + "}";
                 return;
             }
 
@@ -6179,39 +6233,35 @@ class basic_json
             {
                 assert(m_value.array != nullptr);
 
+                // empty array
                 if (m_value.array->empty())
                 {
-                    o << "[]";
+                    o << s_array_empty;
                     return;
                 }
 
-                o << "[";
+                // open array
+                open(s_array_open);
 
-                // increase indentation
-                if (pretty_print)
-                {
-                    new_indent += indent_step;
-                    o << "\n";
-                }
-
+                // iterate values
                 for (auto i = m_value.array->cbegin(); i != m_value.array->cend(); ++i)
                 {
+                    // comma
                     if (i != m_value.array->cbegin())
                     {
                         o << (pretty_print ? ",\n" : ",");
                     }
+
+                    // indent
                     o << string_t(new_indent, ' ');
+
+                    // value
                     i->dump(o, pretty_print, indent_step, new_indent);
                 }
 
-                // decrease indentation
-                if (pretty_print)
-                {
-                    new_indent -= indent_step;
-                    o << "\n";
-                }
+                // close array
+                close(s_array_close);
 
-                o << string_t(new_indent, ' ') << "]";
                 return;
             }
 

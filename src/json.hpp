@@ -6150,8 +6150,16 @@ class basic_json
             s_array_comma = ",\n";
         }
 
+        // whether the last output contained a newline
+        bool last_newline = false;
+
         // variable to hold indentation for recursive calls
         unsigned int new_indent = current_indent;
+
+        const auto indent = [&new_indent, &last_newline]
+        {
+            return last_newline ? string_t(new_indent, ' ') : "";
+        };
 
         const auto open = [&](const std::string & s)
         {
@@ -6160,12 +6168,13 @@ class basic_json
             if (nl_idx == std::string::npos)
             {
                 o << s;
+                last_newline = false;
             }
             else
             {
-                o << s.substr(0, nl_idx);
+                o << s;
                 new_indent += indent_step;
-                o << s.substr(nl_idx);
+                last_newline = true;
             }
         };
 
@@ -6175,13 +6184,32 @@ class basic_json
 
             if (nl_idx == std::string::npos)
             {
-                o << string_t(new_indent, ' ') << s;
+                o << indent() << s;
+                last_newline = false;
             }
             else
             {
                 o << s.substr(0, nl_idx + 1);
                 new_indent -= indent_step;
-                o << string_t(new_indent, ' ') << s.substr(nl_idx + 1);
+                last_newline = true;
+                o << indent() << s.substr(nl_idx + 1);
+                last_newline = false;
+            }
+        };
+
+        const auto infix = [&](const std::string & s)
+        {
+            const auto nl_idx = s.find('\n');
+
+            if (nl_idx == std::string::npos)
+            {
+                o << s;
+                last_newline = false;
+            }
+            else
+            {
+                o << s;
+                last_newline = true;
             }
         };
 
@@ -6204,14 +6232,22 @@ class basic_json
                 // iterate values
                 for (auto i = m_value.object->cbegin(); i != m_value.object->cend(); ++i)
                 {
+                    // comma
                     if (i != m_value.object->cbegin())
                     {
-                        o << (pretty_print ? ",\n" : ",");
+                        infix(s_object_comma);
                     }
-                    o << string_t(new_indent, ' ');
 
-                    o << "\"" << escape_string(i->first) << "\":"
-                      << (pretty_print ? " " : "");
+                    // indent
+                    o << indent();
+
+                    // key
+                    o << "\"" << escape_string(i->first) << "\"";
+
+                    // colon
+                    infix(s_object_colon);
+
+                    // value
                     i->second.dump(o, pretty_print, indent_step, new_indent);
                 }
 
@@ -6238,12 +6274,16 @@ class basic_json
                 // iterate values
                 for (auto i = m_value.array->cbegin(); i != m_value.array->cend(); ++i)
                 {
+                    // comma
                     if (i != m_value.array->cbegin())
                     {
-                        o << (pretty_print ? ",\n" : ",");
+                        infix(s_array_comma);
                     }
-                    o << string_t(new_indent, ' ');
 
+                    // indent
+                    o << indent();
+
+                    // value
                     i->dump(o, pretty_print, indent_step, new_indent);
                 }
 

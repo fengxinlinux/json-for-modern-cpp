@@ -1685,6 +1685,27 @@ TEST_CASE("object inspection")
             json j_discarded(json::value_t::discarded);
             CHECK(j_discarded.dump() == "<discarded>");
         }
+
+        SECTION("printer objects")
+        {
+            SECTION("default printers")
+            {
+                CHECK(j.dump(0, json::printer::compact_printer()) ==
+                      "{\"array\":[1,2,3,4],\"boolean\":false,\"null\":null,\"number\":42,\"object\":{},\"string\":\"Hello world\"}");
+
+                CHECK(j.dump(0, json::printer::pretty_printer()) ==
+                      "{\n\"array\": [\n1,\n2,\n3,\n4\n],\n\"boolean\": false,\n\"null\": null,\n\"number\": 42,\n\"object\": {},\n\"string\": \"Hello world\"\n}");
+            }
+
+            SECTION("user-defined printer")
+            {
+                json::printer my_printer = json::printer::pretty_printer();
+                my_printer.array_comma = ", ";
+
+                CHECK(j.dump(2, my_printer) ==
+                      "{\n  \"array\": [\n    1, 2, 3, 4\n  ],\n  \"boolean\": false,\n  \"null\": null,\n  \"number\": 42,\n  \"object\": {},\n  \"string\": \"Hello world\"\n}");
+            }
+        }
     }
 
     SECTION("return the type of the object (explicit)")

@@ -17,4 +17,12 @@ int main()
     std::cout << j_array.dump(-1) << "\n\n";
     std::cout << j_array.dump(0) << "\n\n";
     std::cout << j_array.dump(4) << "\n\n";
+
+    // user-defined printer: do not separate array values with newlines
+    json::printer my_printer = json::printer::pretty_printer();
+    my_printer.array_comma = ", ";
+
+    // call dump() with user-defined printer
+    std::cout << j_object.dump(4, my_printer) << "\n\n";
+    std::cout << j_array.dump(4, my_printer) << std::endl;
 }

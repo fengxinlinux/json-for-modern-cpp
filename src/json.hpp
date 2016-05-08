@@ -2136,6 +2136,180 @@ class basic_json
     /// @{
 
     /*!
+    @brief pretty printer configuration
+
+    This class configures the behavior of function @ref dump. When passed
+    to this function, its member variables control which whitespace is added
+    during serialization of a JSON value. In particular:
+
+    - @ref object_empty controls how empty objects should be serialized. By
+      default, `"{}"` is used.
+    - @ref object_open controls how objects should be opened. By default, an
+      opening brace (`"{"`) is used. When pretty-printing JSON values, usually
+      a newline is added after the brace (`"{\n"`).
+    - @ref object_close controls how objects should be closed. By default, a
+      closing brace (`"}"`) is used. When pretty-printing JSON values, usually
+      a newline is added before the brace (`"\n}"`).
+    - @ref object_comma controls the separation of object values. By default,
+      a comma (`","`) is used. When pretty-printing JSON values, usually a
+      newline is added after the comma (`",\n"`).
+    - @ref object_colon controls the separation between an object key and an
+      object value. By default, a colon (`":"`) is used. When pretty-printing
+      JSON values, usually a space is added after the colon (`": "`).
+    - @ref array_empty controls how empty array should be serialized. By
+      default, `"[]"` is used.
+    - @ref array_open controls how arrays should be opened. By default, an
+      opening bracket (`"["`) is used. When pretty-printing JSON values,
+      usually a newline is added after the bracket (`"[\n"`).
+    - @ref array_close controls how objects should be closed. By default, a
+      closing bracket (`"]"`) is used. When pretty-printing JSON values,
+      usually a newline is added before the bracket (`"\n]"`).
+    - @ref array_comma controls the separation of array values. By default,
+      a comma (`","`) is used. When pretty-printing JSON values, usually a
+      newline is added after the comma (`",\n"`).
+
+    Note indentation is controlled by parameter @a indent of function
+    @ref dump. In case a parameter of the printer contains a newline, proper
+    indentation is added by @ref dump.
+
+    To simplify default situations, and to have a blueprint for user-defined
+    printers, functions @ref compact_printer() and @ref pretty_printer()
+    define the following values:
+
+    variable           | compact_printer()  | pretty_printer()
+    ------------------ | ------------------ | ---------------------
+    @ref object_empty  | `{}`               | `{}`
+    @ref object_open   | `{`                | `{\n`
+    @ref object_close  | `}`                | `\n}`
+    @ref object_comma  | `,`                | `,\n`
+    @ref object_colon  | `:`                | `: `
+    @ref array_empty   | `[]`               | `[]`
+    @ref array_open    | `[`                | `[\n`
+    @ref array_close   | `]`                | `\n]`
+    @ref array_comma   | `,`                | `,\n`
+    */
+    class printer
+    {
+      public:
+        /*!
+        @brief return a compact printer
+
+        This printer adds no whitespace. An example output is
+
+        @code {.js}
+        {"array":[1,2,3,4],"boolean":false,"null":null,"number":42,"object":{},"string":"Hello world"}
+        @endcode
+
+        @return a printer without any whitespace
+        */
+        static printer compact_printer()
+        {
+            printer result;
+
+            result.object_empty = "{}";
+            result.object_open = "{";
+            result.object_close = "}";
+            result.object_comma = ",";
+            result.object_colon = ":";
+            result.array_empty = "[]";
+            result.array_open = "[";
+            result.array_close = "]";
+            result.array_comma = ",";
+
+            return result;
+        }
+
+        /*!
+        @brief return a pretty printer
+
+        This printer adds a newline after each opening or closing element,
+        as well as after each comma. After the colon of an object, a space is
+        added. For an indentation of 4 spaces, am example output is:
+
+        @code {.js}
+        {
+            "array": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "boolean": false,
+            "null": null,
+            "number": 42,
+            "object": {},
+            "string": "Hello world"
+        }
+        @endcode
+
+        @return a printer that adds newlines after must structural tokens
+        */
+        static printer pretty_printer()
+        {
+            printer result;
+
+            result.object_empty = "{}";
+            result.object_open = "{\n";
+            result.object_close = "\n}";
+            result.object_comma = ",\n";
+            result.object_colon = ": ";
+            result.array_empty = "[]";
+            result.array_open = "[\n";
+            result.array_close = "\n]";
+            result.array_comma = ",\n";
+
+            return result;
+        }
+
+        /*!
+        @brief return a default printer
+
+        This printer models a "not specified" printer which is used in the
+        @ref dump function to choose the appropriate default printer.
+
+        @note This printer is for internal use only and should not be used
+              in other scenarios.
+
+        @return a printer that is marked as default
+        */
+        static const printer internal_default_printer()
+        {
+            printer result;
+            result.m_is_default = true;
+            return result;
+        }
+
+        /// representation of an empty object
+        std::string object_empty = "{}";
+        /// representation of an opening brace for objects
+        std::string object_open = "{";
+        /// representation of a closing brace for objects
+        std::string object_close = "}";
+        /// representation of a comma between object values
+        std::string object_comma = ",";
+        /// representation of a colon after object keys
+        std::string object_colon = ":";
+        /// representation of an empty array
+        std::string array_empty = "[]";
+        /// representation of an opening bracket for arrays
+        std::string array_open = "[";
+        /// representation of a closing bracket for arrays
+        std::string array_close = "]";
+        /// representation of a comma between array values
+        std::string array_comma = ",";
+
+        /// return whether the printer is default
+        bool is_default() const
+        {
+            return m_is_default;
+        }
+
+      private:
+        /// internal variable to detect whether the printer is default
+        bool m_is_default = false;
+    };
+
+    /*!
     @brief serialization
 
     Serialization function for JSON values. The function tries to mimic
@@ -2147,6 +2321,9 @@ class basic_json
     will only insert newlines. -1 (the default) selects the most compact
     representation
 
+    @param[in] p  printer to use for pretty printing. If the parameter is
+    omitted, a default printer is used.
+
     @return string containing the serialization of the JSON value
 
     @complexity Linear.
@@ -2156,19 +2333,22 @@ class basic_json
 
     @see https://docs.python.org/2/library/json.html#json.dump
 
-    @since version 1.0.0
+    @since version 1.0.0. Pretty printer parameter @a p was added in version
+           2.0.0.
     */
-    string_t dump(const int indent = -1) const
+    string_t dump(const int indent = -1,
+                  const printer p = printer::internal_default_printer()) const
     {
         std::stringstream ss;
 
         if (indent >= 0)
         {
-            dump(ss, true, static_cast<unsigned int>(indent));
+            dump(ss, (p.is_default() ? printer::pretty_printer() : p),
+                 static_cast<unsigned int>(indent));
         }
         else
         {
-            dump(ss, false, 0);
+            dump(ss, (p.is_default() ? printer::compact_printer() : p), 0);
         }
 
         return ss.str();
@@ -4894,7 +5074,7 @@ class basic_json
     @ref push_back(const typename object_t::value_type&). Otherwise, @a init
     is converted to a JSON value and added using @ref push_back(basic_json&&).
 
-    @param init  an initializer list
+    @param[in] init  an initializer list
 
     @complexity Linear in the size of the initializer list @a init.
 
@@ -5718,7 +5898,8 @@ class basic_json
         o.width(0);
 
         // do the actual serialization
-        j.dump(o, pretty_print, static_cast<unsigned int>(indentation));
+        j.dump(o, (pretty_print ? printer::pretty_printer() : printer::compact_printer()),
+               static_cast<unsigned int>(indentation));
         return o;
     }
 
@@ -6051,46 +6232,30 @@ class basic_json
     - integer numbers are converted implicitly via `operator<<`
     - floating-point numbers are converted to a string using `"%g"` format
 
+    The JSON specification does not define which whitespace to use in
+    serializations. The concrete whitespace is controlled by the passed
+    @ref printer object @a p.
+
     @param[out] o              stream to write to
-    @param[in] pretty_print    whether the output shall be pretty-printed
+    @param[in] p               a printer object to configure pretty-printing
     @param[in] indent_step     the indent level
     @param[in] current_indent  the current indent level (only used internally)
     */
     void dump(std::ostream& o,
-              const bool pretty_print,
+              const printer& p,
               const unsigned int indent_step,
               unsigned int current_indent = 0) const
     {
-        std::string s_object_empty = "{}";
-        std::string s_object_open = "{";
-        std::string s_object_close = "}";
-        std::string s_object_comma = ",";
-        std::string s_object_colon = ":";
-        std::string s_array_empty = "[]";
-        std::string s_array_open = "[";
-        std::string s_array_close = "]";
-        std::string s_array_comma = ",";
-
-        if (pretty_print)
-        {
-            s_object_open = "{\n";
-            s_object_close = "\n}";
-            s_object_comma = ",\n";
-            s_object_colon = ": ";
-
-            s_array_open = "[\n";
-            s_array_close = "\n]";
-            s_array_comma = ",\n";
-        }
-
         // whether the last output contained a newline
         bool last_newline = false;
 
+        // create indentation
         const auto indent = [&current_indent, &last_newline]
         {
             return last_newline ? string_t(current_indent, ' ') : "";
         };
 
+        // process an opening string (brace, bracket)
         const auto open = [&](const std::string & s)
         {
             if (s.find('\n') == std::string::npos)
@@ -6106,6 +6271,7 @@ class basic_json
             }
         };
 
+        // process a closing string (brace, bracket)
         const auto close = [&](const std::string & s)
         {
             const auto nl_idx = s.find('\n');
@@ -6125,6 +6291,7 @@ class basic_json
             }
         };
 
+        // process an infix string (comma, colon)
         const auto infix = [&](const std::string & s)
         {
             if (s.find('\n') == std::string::npos)
@@ -6148,12 +6315,12 @@ class basic_json
                 // empty object
                 if (m_value.object->empty())
                 {
-                    o << s_object_empty;
+                    o << p.object_empty;
                     return;
                 }
 
                 // open object
-                open(s_object_open);
+                open(p.object_open);
 
                 // iterate values
                 for (auto i = m_value.object->cbegin(); i != m_value.object->cend(); ++i)
@@ -6161,7 +6328,7 @@ class basic_json
                     // comma
                     if (i != m_value.object->cbegin())
                     {
-                        infix(s_object_comma);
+                        infix(p.object_comma);
                     }
 
                     // indent
@@ -6171,14 +6338,14 @@ class basic_json
                     o << "\"" << escape_string(i->first) << "\"";
 
                     // colon
-                    infix(s_object_colon);
+                    infix(p.object_colon);
 
                     // value
-                    i->second.dump(o, pretty_print, indent_step, current_indent);
+                    i->second.dump(o, p, indent_step, current_indent);
                 }
 
                 // close object
-                close(s_object_close);
+                close(p.object_close);
 
                 return;
             }
@@ -6190,12 +6357,12 @@ class basic_json
                 // empty array
                 if (m_value.array->empty())
                 {
-                    o << s_array_empty;
+                    o << p.array_empty;
                     return;
                 }
 
                 // open array
-                open(s_array_open);
+                open(p.array_open);
 
                 // iterate values
                 for (auto i = m_value.array->cbegin(); i != m_value.array->cend(); ++i)
@@ -6203,18 +6370,18 @@ class basic_json
                     // comma
                     if (i != m_value.array->cbegin())
                     {
-                        infix(s_array_comma);
+                        infix(p.array_comma);
                     }
 
                     // indent
                     o << indent();
 
                     // value
-                    i->dump(o, pretty_print, indent_step, current_indent);
+                    i->dump(o, p, indent_step, current_indent);
                 }
 
                 // close array
-                close(s_array_close);
+                close(p.array_close);
 
                 return;
             }

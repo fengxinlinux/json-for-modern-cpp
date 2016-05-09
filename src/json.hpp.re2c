@@ -6258,14 +6258,23 @@ class basic_json
         // process an opening string (brace, bracket)
         const auto open = [&](const std::string & s)
         {
-            if (s.find('\n') == std::string::npos)
+            // caching
+            static std::unordered_map<std::string, size_t> cache;
+            if (cache.find(s) == cache.end())
             {
-                o << s;
+                cache[s] = s.find('\n');
+            }
+
+            // output character
+            o << s;
+
+            // manage indentation
+            if (cache[s] == std::string::npos)
+            {
                 last_newline = false;
             }
             else
             {
-                o << s;
                 current_indent += indent_step;
                 last_newline = true;
             }
@@ -6274,19 +6283,24 @@ class basic_json
         // process a closing string (brace, bracket)
         const auto close = [&](const std::string & s)
         {
-            const auto nl_idx = s.find('\n');
+            // caching
+            static std::unordered_map<std::string, size_t> cache;
+            if (cache.find(s) == cache.end())
+            {
+                cache[s] = s.find('\n');
+            }
 
-            if (nl_idx == std::string::npos)
+            if (cache[s] == std::string::npos)
             {
                 o << indent() << s;
                 last_newline = false;
             }
             else
             {
-                o << s.substr(0, nl_idx + 1);
+                o << s.substr(0, cache[s] + 1);
                 current_indent -= indent_step;
                 last_newline = true;
-                o << indent() << s.substr(nl_idx + 1);
+                o << indent() << s.substr(cache[s] + 1);
                 last_newline = false;
             }
         };
@@ -6294,16 +6308,15 @@ class basic_json
         // process an infix string (comma, colon)
         const auto infix = [&](const std::string & s)
         {
-            if (s.find('\n') == std::string::npos)
+            // caching
+            static std::unordered_map<std::string, size_t> cache;
+            if (cache.find(s) == cache.end())
             {
-                o << s;
-                last_newline = false;
+                cache[s] = s.find('\n');
             }
-            else
-            {
-                o << s;
-                last_newline = true;
-            }
+
+            o << s;
+            last_newline = (cache[s] != std::string::npos);
         };
 
         switch (m_type)

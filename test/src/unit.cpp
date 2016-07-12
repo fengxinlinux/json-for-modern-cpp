@@ -14190,9 +14190,7 @@ TEST_CASE("Custom Allocators")
     }
 }
 
-/*ALLOCATOR_REMOVE
 // special test case to check if memory is leaked if constructor throws
-
 template<class T>
 struct my_allocator : std::allocator<T>
 {
@@ -14201,6 +14199,9 @@ struct my_allocator : std::allocator<T>
     {
         throw std::bad_alloc();
     }
+
+    my_allocator() = default;
+    template <class U> my_allocator(const my_allocator<U>&) {}
 };
 
 TEST_CASE("bad_alloc")
@@ -14221,4 +14222,3 @@ TEST_CASE("bad_alloc")
         CHECK_THROWS_AS(my_json j(my_json::value_t::object), std::bad_alloc);
     }
 }
-*/

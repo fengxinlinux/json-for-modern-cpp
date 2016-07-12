@@ -739,15 +739,17 @@ class basic_json
 
     /// helper for exception-safe object creation
     template<typename T, typename... Args>
-    static T* create(Args&& ... args)
+    static T* create(const allocator_type& allocator, Args&& ... args)
     {
-        AllocatorType<T> alloc;
+        AllocatorType<T> alloc(allocator);
         auto deleter = [&](T * object)
         {
-            alloc.deallocate(object, 1);
+            std::allocator_traits<AllocatorType<T>>::deallocate(alloc, object, 1);
         };
-        std::unique_ptr<T, decltype(deleter)> object(alloc.allocate(1), deleter);
-        alloc.construct(object.get(), std::forward<Args>(args)...);
+        std::unique_ptr<T, decltype(deleter)> object(std::allocator_traits<AllocatorType<T>>::allocate(
+                    alloc, 1), deleter);
+        std::allocator_traits<AllocatorType<T>>::construct(alloc, object.get(),
+                                             std::forward<Args>(args)...);
         return object.release();
     }
 
@@ -790,25 +792,25 @@ class basic_json
         /// constructor for numbers (floating-point)
         json_value(number_float_t v) noexcept : number_float(v) {}
         /// constructor for empty values of a given type
-        json_value(value_t t)
+        json_value(const allocator_type& allocator, value_t t)
         {
             switch (t)
             {
                 case value_t::object:
                 {
-                    object = create<object_t>();
+                    object = create<object_t>(allocator, allocator);
                     break;
                 }
 
                 case value_t::array:
                 {
-                    array = create<array_t>();
+                    array = create<array_t>(allocator, allocator);
                     break;
                 }
 
                 case value_t::string:
                 {
-                    string = create<string_t>("");
+                    string = create<string_t>(allocator, "");
                     break;
                 }
 
@@ -845,20 +847,35 @@ class basic_json
 
         /// constructor for strings
         json_value(const string_t& value)
+            : json_value(value.get_allocator(), value)
+        {}
+
+        /// constructor for strings
+        json_value(const allocator_type& allocator, const string_t& value)
         {
-            string = create<string_t>(value);
+            string = create<string_t>(allocator, value);
         }
 
         /// constructor for objects
         json_value(const object_t& value)
+            : json_value(value.get_allocator(), value)
+        {}
+
+        /// constructor for objects
+        json_value(const allocator_type& allocator, const object_t& value)
         {
-            object = create<object_t>(value);
+            object = create<object_t>(allocator, value, allocator);
         }
 
         /// constructor for arrays
         json_value(const array_t& value)
+            : json_value(value.get_allocator(), value)
+        {}
+
+        /// constructor for arrays
+        json_value(const allocator_type& allocator, const array_t& value)
         {
-            array = create<array_t>(value);
+            array = create<array_t>(allocator, value, allocator);
         }
     };
 
@@ -995,7 +1012,9 @@ class basic_json
     */
     basic_json(const value_t value_type,
                const allocator_type& allocator = allocator_type())
-        : m_type(value_type), m_value(value_type), m_allocator(allocator)
+        : m_type(value_type),
+          m_value(allocator, value_type),
+          m_allocator(allocator)
     {}
 
     /*!
@@ -1079,7 +1098,9 @@ class basic_json
     */
     basic_json(const object_t& val,
                const allocator_type& allocator = allocator_type())
-        : m_type(value_t::object), m_value(val), m_allocator(allocator)
+        : m_type(value_t::object),
+          m_value(allocator, val),
+          m_allocator(allocator)
     {}
 
     /*!
@@ -1120,7 +1141,10 @@ class basic_json
     {
         using std::begin;
         using std::end;
-        m_value.object = create<object_t>(begin(val), end(val));
+        m_value.object = create<object_t>(m_allocator,
+                                          begin(val), end(val),
+                                          std::less<StringType>(),
+                                          m_allocator);
     }
 
     /*!
@@ -1145,7 +1169,9 @@ class basic_json
     */
     basic_json(const array_t& val,
                const allocator_type& allocator = allocator_type())
-        : m_type(value_t::array), m_value(val), m_allocator(allocator)
+        : m_type(value_t::array),
+          m_value(allocator, val),
+          m_allocator(allocator)
     {}
 
     /*!
@@ -1191,7 +1217,9 @@ class basic_json
     {
         using std::begin;
         using std::end;
-        m_value.array = create<array_t>(begin(val), end(val));
+        m_value.array = create<array_t>(m_allocator,
+                                        begin(val), end(val),
+                                        m_allocator);
     }
 
     /*!
@@ -1218,7 +1246,9 @@ class basic_json
     */
     basic_json(const string_t& val,
                const allocator_type& allocator = allocator_type())
-        : m_type(value_t::string), m_value(val), m_allocator(allocator)
+        : m_type(value_t::string),
+          m_value(allocator, val),
+          m_allocator(allocator)
     {}
 
     /*!
@@ -1660,7 +1690,7 @@ class basic_json
         {
             // the initializer list is a list of pairs -> create object
             m_type = value_t::object;
-            m_value = value_t::object;
+            m_value = json_value(m_allocator, value_t::object);
 
             assert(m_value.object != nullptr);
 
@@ -1673,7 +1703,7 @@ class basic_json
         {
             // the initializer list describes an array -> create array
             m_type = value_t::array;
-            m_value.array = create<array_t>(init);
+            m_value.array = create<array_t>(m_allocator, init, m_allocator);
         }
     }
 
@@ -1784,7 +1814,7 @@ class basic_json
                const allocator_type& allocator = allocator_type())
         : m_type(value_t::array), m_allocator(allocator)
     {
-        m_value.array = create<array_t>(cnt, val);
+        m_value.array = create<array_t>(m_allocator, cnt, val, m_allocator);
     }
 
     /*!
@@ -1899,13 +1929,20 @@ class basic_json
 
             case value_t::object:
             {
-                m_value.object = create<object_t>(first.m_it.object_iterator, last.m_it.object_iterator);
+                m_value.object = create<object_t>(m_allocator,
+                                                  first.m_it.object_iterator,
+                                                  last.m_it.object_iterator,
+                                                  std::less<StringType>(),
+                                                  m_allocator);
                 break;
             }
 
             case value_t::array:
             {
-                m_value.array = create<array_t>(first.m_it.array_iterator, last.m_it.array_iterator);
+                m_value.array = create<array_t>(m_allocator,
+                                                first.m_it.array_iterator,
+                                                last.m_it.array_iterator,
+                                                m_allocator);
                 break;
             }
 
@@ -2113,25 +2150,25 @@ class basic_json
         {
             case value_t::object:
             {
-                AllocatorType<object_t> alloc;
-                alloc.destroy(m_value.object);
-                alloc.deallocate(m_value.object, 1);
+                AllocatorType<object_t> alloc(m_allocator);
+                std::allocator_traits<AllocatorType<object_t>>::destroy(alloc, m_value.object);
+                std::allocator_traits<AllocatorType<object_t>>::deallocate(alloc, m_value.object, 1);
                 break;
             }
 
             case value_t::array:
             {
-                AllocatorType<array_t> alloc;
-                alloc.destroy(m_value.array);
-                alloc.deallocate(m_value.array, 1);
+                AllocatorType<array_t> alloc(m_allocator);
+                std::allocator_traits<AllocatorType<array_t>>::destroy(alloc, m_value.array);
+                std::allocator_traits<AllocatorType<array_t>>::deallocate(alloc, m_value.array, 1);
                 break;
             }
 
             case value_t::string:
             {
-                AllocatorType<string_t> alloc;
-                alloc.destroy(m_value.string);
-                alloc.deallocate(m_value.string, 1);
+                AllocatorType<string_t> alloc(m_allocator);
+                std::allocator_traits<AllocatorType<string_t>>::destroy(alloc, m_value.string);
+                std::allocator_traits<AllocatorType<string_t>>::deallocate(alloc, m_value.string, 1);
                 break;
             }
 
@@ -3346,7 +3383,7 @@ class basic_json
         if (is_null())
         {
             m_type = value_t::array;
-            m_value.array = create<array_t>();
+            m_value.array = create<array_t>(m_allocator, m_allocator);
         }
 
         // operator[] only works for arrays
@@ -3435,7 +3472,7 @@ class basic_json
         if (is_null())
         {
             m_type = value_t::object;
-            m_value.object = create<object_t>();
+            m_value.object = create<object_t>(m_allocator, m_allocator);
         }
 
         // operator[] only works for objects
@@ -3594,7 +3631,7 @@ class basic_json
         if (is_null())
         {
             m_type = value_t::object;
-            m_value = value_t::object;
+            m_value = json_value(m_allocator, value_t::object);
         }
 
         // at only works for objects
@@ -4836,7 +4873,7 @@ class basic_json
         if (is_null())
         {
             m_type = value_t::array;
-            m_value = value_t::array;
+            m_value = json_value(m_allocator, value_t::array);
         }
 
         // add element to array (move semantics)
@@ -4872,7 +4909,7 @@ class basic_json
         if (is_null())
         {
             m_type = value_t::array;
-            m_value = value_t::array;
+            m_value = json_value(m_allocator, value_t::array);
         }
 
         // add element to array
@@ -4922,7 +4959,7 @@ class basic_json
         if (is_null())
         {
             m_type = value_t::object;
-            m_value = value_t::object;
+            m_value = json_value(m_allocator, value_t::object);
         }
 
         // add element to array
@@ -8627,7 +8664,7 @@ basic_json_parser_63:
                     {
                         // explicitly set result to object to cope with {}
                         result.m_type = value_t::object;
-                        result.m_value = json_value(value_t::object);
+                        result.m_value = json_value(m_allocator, value_t::object);
                     }
 
                     // read next token
@@ -8703,9 +8740,9 @@ basic_json_parser_63:
                 {
                     if (keep and (not callback or (keep = callback(depth++, parse_event_t::array_start, result))))
                     {
-                        // explicitly set result to object to cope with []
+                        // explicitly set result to array to cope with []
                         result.m_type = value_t::array;
-                        result.m_value = json_value(value_t::array);
+                        result.m_value = json_value(m_allocator, value_t::array);
                     }
 
                     // read next token

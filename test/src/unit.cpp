@@ -49,6 +49,20 @@ using nlohmann::json;
     #pragma GCC diagnostic ignored "-Wfloat-equal"
 #endif
 
+#include "StlAllocatorMock.hpp"
+using string_with_allocator =
+    std::basic_string<char, std::char_traits<char>, StlAllocatorMock<char>>;
+
+using json_with_allocator = nlohmann::basic_json <
+                            std::map,
+                            std::vector,
+                            string_with_allocator,
+                            bool,
+                            std::int64_t,
+                            std::uint64_t,
+                            double,
+                            StlAllocatorMock >;
+
 TEST_CASE("constructors")
 {
     SECTION("create an empty value with a given type")
@@ -307,6 +321,18 @@ TEST_CASE("constructors")
             json::string_t s {"Hello world"};
             json j(s);
             CHECK(j.type() == json::value_t::string);
+        }
+
+        SECTION("filled string (custom allocator)")
+        {
+            StlAllocatorMockState allocatorState;
+            StlAllocatorMock<json_with_allocator> allocator(&allocatorState);
+
+            json_with_allocator::string_t s("Hello world", allocator);
+            json_with_allocator j(s, allocator);
+
+            bool isStringTypeAsExpected = (j.type() == json_with_allocator::value_t::string);
+            CHECK(isStringTypeAsExpected);
         }
     }
 
@@ -14139,6 +14165,32 @@ TEST_CASE("regression tests")
     }
 }
 
+TEST_CASE("Custom Allocators")
+{
+    SECTION("Constructor with State Persists State")
+    {
+        StlAllocatorMockState allocatorState;
+        StlAllocatorMock<json_with_allocator> originalAllocator(&allocatorState);
+
+        json_with_allocator json(originalAllocator);
+        StlAllocatorMock<json_with_allocator> finalAllocator = json.get_allocator();
+
+        CHECK(originalAllocator == finalAllocator);
+    }
+
+    SECTION("bad_alloc thrown when allocation fails")
+    {
+        // Create a state that will fail all allocations.
+        StlAllocatorMockState allocatorState(true);
+        StlAllocatorMock<json_with_allocator> allocator(&allocatorState);
+
+        // creating an object should throw
+        CHECK_THROWS_AS(json_with_allocator j(json_with_allocator::value_t::object, allocator),
+                        std::bad_alloc);
+    }
+}
+
+/*ALLOCATOR_REMOVE
 // special test case to check if memory is leaked if constructor throws
 
 template<class T>
@@ -14169,3 +14221,4 @@ TEST_CASE("bad_alloc")
         CHECK_THROWS_AS(my_json j(my_json::value_t::object), std::bad_alloc);
     }
 }
+*/

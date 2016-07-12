@@ -21,7 +21,7 @@ clean:
 FLAGS = -Wall -Wextra -pedantic -Weffc++ -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-overflow=5 -Wswitch -Wundef -Wno-unused -Wnon-virtual-dtor -Wreorder -Wdeprecated -Wfloat-equal
 
 # build unit tests (TODO: Does this want its own makefile?)
-json_unit: test/src/unit.cpp src/json.hpp test/src/catch.hpp
+json_unit: test/src/unit.cpp src/json.hpp test/src/catch.hpp test/src/StlAllocatorMock.hpp test/src/StlAllocatorMockState.hpp
 	$(CXX) -std=c++11 $(CXXFLAGS) $(FLAGS) $(CPPFLAGS) -I src -I test $< $(LDFLAGS) -o $@
 
 
@@ -76,7 +76,9 @@ pretty:
 	   --indent-col1-comments --pad-oper --pad-header --align-pointer=type \
 	   --align-reference=type --add-brackets --convert-tabs --close-templates \
 	   --lineend=linux --preserve-date --suffix=none --formatted \
-	   src/json.hpp src/json.hpp.re2c test/src/unit.cpp test/src/fuzz.cpp benchmarks/benchmarks.cpp doc/examples/*.cpp
+	   src/json.hpp src/json.hpp.re2c test/src/unit.cpp test/src/fuzz.cpp \
+	   test/src/StlAllocatorMock.hpp test/src/StlAllocatorMockState.hpp \
+	   benchmarks/benchmarks.cpp doc/examples/*.cpp
 
 
 ##########################################################################

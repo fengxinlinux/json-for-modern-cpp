@@ -1746,6 +1746,17 @@ TEST_CASE("object inspection")
             json j_discarded(json::value_t::discarded);
             CHECK(j_discarded.dump() == "<discarded>");
         }
+
+        /*
+                SECTION("no indent (custom allocator)")
+                {
+                    StlAllocatorMockState allocatorState;
+                    StlAllocatorMock<json_with_allocator> allocator(&allocatorState);
+
+                    json_with_allocator ja(allocator);
+                    ja.dump();
+                }
+                */
     }
 
     SECTION("return the type of the object (explicit)")
@@ -8770,6 +8781,16 @@ TEST_CASE("deserialization")
     {
         CHECK("[\"foo\",1,2,3,false,{\"one\":1}]"_json == json({"foo", 1, 2, 3, false, {{"one", 1}}}));
     }
+
+    /*
+        SECTION("string (custom allocator)")
+        {
+            StlAllocatorMockState allocatorState;
+            StlAllocatorMock<json_with_allocator> allocator(&allocatorState);
+
+            json_with_allocator j = json_with_allocator::parse("[]");
+        }
+        */
 }
 
 TEST_CASE("iterator class")
@@ -14200,9 +14221,9 @@ TEST_CASE("regression tests")
     }
 }
 
-TEST_CASE("Custom Allocators")
+TEST_CASE("custom Allocators")
 {
-    SECTION("Constructor with State Persists State")
+    SECTION("constructor with state persists state")
     {
         StlAllocatorMockState allocatorState;
         StlAllocatorMock<json_with_allocator> originalAllocator(&allocatorState);

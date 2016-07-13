@@ -2234,7 +2234,10 @@ class basic_json
     */
     string_t dump(const int indent = -1) const
     {
-        std::stringstream ss;
+        std::basic_stringstream<typename string_t::value_type,
+            typename string_t::traits_type,
+            typename string_t::allocator_type> ss;
+
         // fix locale problems
         ss.imbue(std::locale(std::locale(), new DecimalSeparator));
 

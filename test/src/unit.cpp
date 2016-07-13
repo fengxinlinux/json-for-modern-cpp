@@ -167,6 +167,21 @@ TEST_CASE("constructors")
             CHECK(j.type() == json::value_t::object);
         }
 
+        SECTION("filled object (custom allocator)")
+        {
+            StlAllocatorMockState allocatorState;
+            StlAllocatorMock<json_with_allocator> allocator(&allocatorState);
+
+            json_with_allocator::object_t o(allocator);
+            o.insert({json_with_allocator::string_t("a", allocator), json_with_allocator(1, allocator)});
+            o.insert({json_with_allocator::string_t("b", allocator), json_with_allocator(1u, allocator)});
+            o.insert({json_with_allocator::string_t("c", allocator), json_with_allocator(2.2, allocator)});
+            o.insert({json_with_allocator::string_t("d", allocator), json_with_allocator(false, allocator)});
+            o.insert({json_with_allocator::string_t("e", allocator), json_with_allocator("string", allocator)});
+            o.insert({json_with_allocator::string_t("f", allocator), json_with_allocator(allocator)});
+            json_with_allocator j(o, allocator);
+            CHECK((j.type() == json_with_allocator::value_t::object));
+        }
     }
 
     SECTION("create an object (implicit)")
@@ -239,6 +254,23 @@ TEST_CASE("constructors")
             CHECK(j.type() == json::value_t::array);
         }
 
+        SECTION("filled array (custom allocator)")
+        {
+            StlAllocatorMockState allocatorState;
+            StlAllocatorMock<json_with_allocator> allocator(&allocatorState);
+
+            json_with_allocator::array_t a({json_with_allocator(1, allocator),
+                                            json_with_allocator(1u, allocator),
+                                            json_with_allocator(2.2, allocator),
+                                            json_with_allocator(false, allocator),
+                                            json_with_allocator("string", allocator),
+                                            json_with_allocator(allocator)
+                                           },
+                                           allocator);
+            json_with_allocator j(a, allocator);
+
+            CHECK((j.type() == json_with_allocator::value_t::array));
+        }
     }
 
     SECTION("create an array (implicit)")
@@ -335,8 +367,7 @@ TEST_CASE("constructors")
             json_with_allocator::string_t s("Hello world", allocator);
             json_with_allocator j(s, allocator);
 
-            bool isStringTypeAsExpected = (j.type() == json_with_allocator::value_t::string);
-            CHECK(isStringTypeAsExpected);
+            CHECK((j.type() == json_with_allocator::value_t::string));
         }
     }
 

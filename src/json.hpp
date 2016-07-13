@@ -1146,7 +1146,8 @@ class basic_json
               = 0>
     basic_json(const CompatibleObjectType& val,
                const allocator_type& allocator = {})
-        : m_type(value_t::object), m_allocator(allocator)
+        : m_type(value_t::object),
+          m_allocator(allocator)
     {
         using std::begin;
         using std::end;
@@ -1222,7 +1223,8 @@ class basic_json
               = 0>
     basic_json(const CompatibleArrayType& val,
                const allocator_type& allocator = {})
-        : m_type(value_t::array), m_allocator(allocator)
+        : m_type(value_t::array),
+          m_allocator(allocator)
     {
         using std::begin;
         using std::end;
@@ -1283,7 +1285,7 @@ class basic_json
     */
     basic_json(const typename string_t::value_type* val,
                const allocator_type& allocator = {})
-        : basic_json(string_t(val), allocator)
+        : basic_json(string_t(val, allocator), allocator)
     {}
 
     /*!
@@ -1316,7 +1318,7 @@ class basic_json
               = 0>
     basic_json(const CompatibleStringType& val,
                const allocator_type& allocator = {})
-        : basic_json(string_t(val), allocator)
+        : basic_json(string_t(val, allocator), allocator)
     {}
 
     /*!
@@ -1336,7 +1338,9 @@ class basic_json
     */
     basic_json(boolean_t val,
                const allocator_type& allocator = {}) noexcept
-        : m_type(value_t::boolean), m_value(val), m_allocator(allocator)
+        : m_type(value_t::boolean),
+          m_value(val),
+          m_allocator(allocator)
     {}
 
     /*!
@@ -1542,7 +1546,9 @@ class basic_json
     */
     basic_json(const number_float_t val,
                const allocator_type& allocator = {}) noexcept
-        : m_type(value_t::number_float), m_value(val), m_allocator(allocator)
+        : m_type(value_t::number_float),
+          m_value(val),
+          m_allocator(allocator)
     {
         // replace infinity and NAN by null
         if (not std::isfinite(val))
@@ -1821,7 +1827,8 @@ class basic_json
     */
     basic_json(size_type cnt, const basic_json& val,
                const allocator_type& allocator = {})
-        : m_type(value_t::array), m_allocator(allocator)
+        : m_type(value_t::array),
+          m_allocator(allocator)
     {
         m_value.array = create<array_t>(m_allocator, cnt, val, m_allocator);
     }
@@ -1869,7 +1876,8 @@ class basic_json
               = 0>
     basic_json(InputIT first, InputIT last,
                const allocator_type& allocator = {})
-        : m_type(first.m_object->m_type), m_allocator(allocator)
+        : m_type(first.m_object->m_type),
+          m_allocator(allocator)
     {
         // make sure iterator fits the current value
         if (first.m_object != last.m_object)
@@ -2018,7 +2026,8 @@ class basic_json
     @since version 1.0.0
     */
     basic_json(const basic_json& other)
-        : m_type(other.m_type), m_allocator(other.m_allocator)
+        : m_type(other.m_type),
+          m_allocator(other.m_allocator)
     {
         switch (m_type)
         {

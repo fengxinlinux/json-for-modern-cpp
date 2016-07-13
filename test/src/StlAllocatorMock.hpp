@@ -30,7 +30,7 @@ class StlAllocatorMock
     //StlAllocatorMock() = delete;
     StlAllocatorMock()
     {
-        FAIL("Default constructor should not be used.");
+        FAIL("default constructor should not be used");
     }
 
     explicit StlAllocatorMock(const StlAllocatorMockState* pState)

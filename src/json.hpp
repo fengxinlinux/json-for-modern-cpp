@@ -373,6 +373,9 @@ class basic_json
           AllocatorType<std::pair<const StringType,
           basic_json>>>;
 
+    static_assert(std::is_member_function_pointer<decltype(&object_t::get_allocator)>::value,
+                  "object type is not allocator aware");
+
     /*!
     @brief a type for an array
 
@@ -418,6 +421,9 @@ class basic_json
     @since version 1.0.0
     */
     using array_t = ArrayType<basic_json, AllocatorType<basic_json>>;
+
+    static_assert(std::is_member_function_pointer<decltype(&array_t::get_allocator)>::value,
+                  "array type is not allocator aware");
 
     /*!
     @brief a type for a string
@@ -465,6 +471,9 @@ class basic_json
     @since version 1.0.0
     */
     using string_t = StringType;
+
+    static_assert(std::is_member_function_pointer<decltype(&string_t::get_allocator)>::value,
+                  "string type is not allocator aware");
 
     /*!
     @brief a type for a boolean
@@ -1011,7 +1020,7 @@ class basic_json
     @since version 1.0.0
     */
     basic_json(const value_t value_type,
-               const allocator_type& allocator = allocator_type())
+               const allocator_type& allocator = {})
         : m_type(value_type),
           m_value(allocator, value_type),
           m_allocator(allocator)
@@ -1043,7 +1052,7 @@ class basic_json
 
     @since version 1.0.0
     */
-    basic_json(const allocator_type& allocator = allocator_type()) noexcept
+    basic_json(const allocator_type& allocator = {}) noexcept
         : m_allocator(allocator)
     {}
 
@@ -1072,7 +1081,7 @@ class basic_json
     @since version 1.0.0
     */
     basic_json(std::nullptr_t,
-               const allocator_type& allocator = allocator_type()) noexcept
+               const allocator_type& allocator = {}) noexcept
         : basic_json(value_t::null, allocator)
     {}
 
@@ -1097,7 +1106,7 @@ class basic_json
     @since version 1.0.0
     */
     basic_json(const object_t& val,
-               const allocator_type& allocator = allocator_type())
+               const allocator_type& allocator = {})
         : m_type(value_t::object),
           m_value(allocator, val),
           m_allocator(allocator)
@@ -1136,7 +1145,7 @@ class basic_json
                   std::is_constructible<basic_json, typename CompatibleObjectType::mapped_type>::value, int>::type
               = 0>
     basic_json(const CompatibleObjectType& val,
-               const allocator_type& allocator = allocator_type())
+               const allocator_type& allocator = {})
         : m_type(value_t::object), m_allocator(allocator)
     {
         using std::begin;
@@ -1168,7 +1177,7 @@ class basic_json
     @since version 1.0.0
     */
     basic_json(const array_t& val,
-               const allocator_type& allocator = allocator_type())
+               const allocator_type& allocator = {})
         : m_type(value_t::array),
           m_value(allocator, val),
           m_allocator(allocator)
@@ -1212,7 +1221,7 @@ class basic_json
                   std::is_constructible<basic_json, typename CompatibleArrayType::value_type>::value, int>::type
               = 0>
     basic_json(const CompatibleArrayType& val,
-               const allocator_type& allocator = allocator_type())
+               const allocator_type& allocator = {})
         : m_type(value_t::array), m_allocator(allocator)
     {
         using std::begin;
@@ -1245,7 +1254,7 @@ class basic_json
     @since version 1.0.0
     */
     basic_json(const string_t& val,
-               const allocator_type& allocator = allocator_type())
+               const allocator_type& allocator = {})
         : m_type(value_t::string),
           m_value(allocator, val),
           m_allocator(allocator)
@@ -1273,7 +1282,7 @@ class basic_json
     @since version 1.0.0
     */
     basic_json(const typename string_t::value_type* val,
-               const allocator_type& allocator = allocator_type())
+               const allocator_type& allocator = {})
         : basic_json(string_t(val), allocator)
     {}
 
@@ -1306,7 +1315,7 @@ class basic_json
                   std::is_constructible<string_t, CompatibleStringType>::value, int>::type
               = 0>
     basic_json(const CompatibleStringType& val,
-               const allocator_type& allocator = allocator_type())
+               const allocator_type& allocator = {})
         : basic_json(string_t(val), allocator)
     {}
 
@@ -1326,7 +1335,7 @@ class basic_json
     @since version 1.0.0
     */
     basic_json(boolean_t val,
-               const allocator_type& allocator = allocator_type()) noexcept
+               const allocator_type& allocator = {}) noexcept
         : m_type(value_t::boolean), m_value(val), m_allocator(allocator)
     {}
 
@@ -1361,7 +1370,7 @@ class basic_json
                  , int>::type
              = 0>
     basic_json(const number_integer_t val,
-               const allocator_type& allocator = allocator_type()) noexcept
+               const allocator_type& allocator = {}) noexcept
         : m_type(value_t::number_integer),
           m_value(val),
           m_allocator(allocator)
@@ -1394,7 +1403,7 @@ class basic_json
     @since version 1.0.0
     */
     basic_json(const int val,
-               const allocator_type& allocator = allocator_type()) noexcept
+               const allocator_type& allocator = {}) noexcept
         : m_type(value_t::number_integer),
           m_value(static_cast<number_integer_t>(val)),
           m_allocator(allocator)
@@ -1434,7 +1443,7 @@ class basic_json
                  CompatibleNumberIntegerType>::type
              = 0>
     basic_json(const CompatibleNumberIntegerType val,
-               const allocator_type& allocator = allocator_type()) noexcept
+               const allocator_type& allocator = {}) noexcept
         : m_type(value_t::number_integer),
           m_value(static_cast<number_integer_t>(val)),
           m_allocator(allocator)
@@ -1465,7 +1474,7 @@ class basic_json
                  , int>::type
              = 0>
     basic_json(const number_unsigned_t val,
-               const allocator_type& allocator = allocator_type()) noexcept
+               const allocator_type& allocator = {}) noexcept
         : m_type(value_t::number_unsigned),
           m_value(val),
           m_allocator(allocator)
@@ -1500,7 +1509,7 @@ class basic_json
                   CompatibleNumberUnsignedType>::type
               = 0>
     basic_json(const CompatibleNumberUnsignedType val,
-               const allocator_type& allocator = allocator_type()) noexcept
+               const allocator_type& allocator = {}) noexcept
         : m_type(value_t::number_unsigned),
           m_value(static_cast<number_unsigned_t>(val)),
           m_allocator(allocator)
@@ -1532,7 +1541,7 @@ class basic_json
     @since version 1.0.0
     */
     basic_json(const number_float_t val,
-               const allocator_type& allocator = allocator_type()) noexcept
+               const allocator_type& allocator = {}) noexcept
         : m_type(value_t::number_float), m_value(val), m_allocator(allocator)
     {
         // replace infinity and NAN by null
@@ -1581,7 +1590,7 @@ class basic_json
                  std::is_floating_point<CompatibleNumberFloatType>::value>::type
              >
     basic_json(const CompatibleNumberFloatType val,
-               const allocator_type& allocator = allocator_type()) noexcept
+               const allocator_type& allocator = {}) noexcept
         : basic_json(number_float_t(val), allocator)
     {}
 
@@ -1659,7 +1668,7 @@ class basic_json
     basic_json(std::initializer_list<basic_json> init,
                bool type_deduction = true,
                value_t manual_type = value_t::array,
-               const allocator_type& allocator = allocator_type())
+               const allocator_type& allocator = {})
         : m_allocator(allocator)
     {
         // check if each element is an array with two elements whose first
@@ -1744,7 +1753,7 @@ class basic_json
     */
     static basic_json array(std::initializer_list<basic_json> init =
                                 std::initializer_list<basic_json>(),
-                            const allocator_type& allocator = allocator_type())
+                            const allocator_type& allocator = {})
     {
         return basic_json(init, false, value_t::array, allocator);
     }
@@ -1786,7 +1795,7 @@ class basic_json
     */
     static basic_json object(std::initializer_list<basic_json> init =
                                  std::initializer_list<basic_json>(),
-                             const allocator_type& allocator = allocator_type())
+                             const allocator_type& allocator = {})
     {
         return basic_json(init, false, value_t::object, allocator);
     }
@@ -1811,7 +1820,7 @@ class basic_json
     @since version 1.0.0
     */
     basic_json(size_type cnt, const basic_json& val,
-               const allocator_type& allocator = allocator_type())
+               const allocator_type& allocator = {})
         : m_type(value_t::array), m_allocator(allocator)
     {
         m_value.array = create<array_t>(m_allocator, cnt, val, m_allocator);
@@ -1859,7 +1868,7 @@ class basic_json
                   , int>::type
               = 0>
     basic_json(InputIT first, InputIT last,
-               const allocator_type& allocator = allocator_type())
+               const allocator_type& allocator = {})
         : m_type(first.m_object->m_type), m_allocator(allocator)
     {
         // make sure iterator fits the current value
@@ -1976,7 +1985,7 @@ class basic_json
     @since version 2.0.0
     */
     explicit basic_json(std::istream& i, parser_callback_t cb = nullptr,
-                        const allocator_type& allocator = allocator_type())
+                        const allocator_type& allocator = {})
         : m_allocator(allocator)
     {
         *this = parser(i, cb, allocator).parse();
@@ -5870,7 +5879,7 @@ class basic_json
     */
     static basic_json parse(const string_t& s,
                             parser_callback_t cb = nullptr,
-                            const allocator_type& allocator = allocator_type())
+                            const allocator_type& allocator = {})
     {
         return parser(s, cb, allocator).parse();
     }
@@ -5902,7 +5911,7 @@ class basic_json
     */
     static basic_json parse(std::istream& i,
                             parser_callback_t cb = nullptr,
-                            const allocator_type& allocator = allocator_type())
+                            const allocator_type& allocator = {})
     {
         return parser(i, cb, allocator).parse();
     }
@@ -5912,7 +5921,7 @@ class basic_json
     */
     static basic_json parse(std::istream&& i,
                             parser_callback_t cb = nullptr,
-                            const allocator_type& allocator = allocator_type())
+                            const allocator_type& allocator = {})
     {
         return parser(i, cb, allocator).parse();
     }
@@ -8622,7 +8631,7 @@ basic_json_parser_63:
       public:
         /// constructor for strings
         parser(const string_t& s, parser_callback_t cb = nullptr,
-               const allocator_type& allocator = allocator_type()) noexcept
+               const allocator_type& allocator = {}) noexcept
             : callback(cb), m_lexer(s), m_allocator(allocator)
         {
             // read first token
@@ -8631,7 +8640,7 @@ basic_json_parser_63:
 
         /// a parser reading from an input stream
         parser(std::istream& _is, parser_callback_t cb = nullptr,
-               const allocator_type& allocator = allocator_type()) noexcept
+               const allocator_type& allocator = {}) noexcept
             : callback(cb), m_lexer(&_is), m_allocator(allocator)
         {
             // read first token

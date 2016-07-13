@@ -14172,8 +14172,8 @@ TEST_CASE("Custom Allocators")
         StlAllocatorMockState allocatorState;
         StlAllocatorMock<json_with_allocator> originalAllocator(&allocatorState);
 
-        json_with_allocator json(originalAllocator);
-        StlAllocatorMock<json_with_allocator> finalAllocator = json.get_allocator();
+        json_with_allocator j(originalAllocator);
+        StlAllocatorMock<json_with_allocator> finalAllocator = j.get_allocator();
 
         CHECK(originalAllocator == finalAllocator);
     }

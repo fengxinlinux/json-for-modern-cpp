@@ -118,5 +118,5 @@ class StlAllocatorMock
     template <typename U>
     friend class StlAllocatorMock;
 
-    const StlAllocatorMockState* m_pState;
+    const StlAllocatorMockState* m_pState = nullptr;
 };

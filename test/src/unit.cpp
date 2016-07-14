@@ -40,11 +40,9 @@ SOFTWARE.
 #include <unordered_set>
 #include <vector>
 
-// disable float-equal warnings on GCC/clang;
-// also ignore warning for public/private redefine
+// disable float-equal warnings on GCC/clang
 #if defined(__clang__) || defined(__GNUC__) || defined(__GNUG__)
     #pragma GCC diagnostic ignored "-Wfloat-equal"
-    #pragma GCC diagnostic ignored "-Wkeyword-macro"
 #endif
 
 #define private public

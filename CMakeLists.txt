@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.0)
 
-# define the project
+# define the project name, version, and language
 project(nlohmann_json VERSION 2.0.8 LANGUAGES CXX)
 
+# enable testing for current directory and below (allows to execute ctest at
+# root directory)
 enable_testing()
 
 option(BuildTests "Build the unit tests" ON)
@@ -23,7 +25,7 @@ target_include_directories(${JSON_TARGET_NAME} INTERFACE
   $<INSTALL_INTERFACE:${JSON_INCLUDE_DESTINATION}>)
 
 # create and configure the unit test target
-if (BuildTests)
+if(BuildTests)
     add_subdirectory(test)
 endif()
 
@@ -38,18 +40,13 @@ write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/${JSON_CONFIGVERSI
     COMPATIBILITY SameMajorVersion)
 
 # export the library target and store build directory in package registry
-export(TARGETS ${JSON_TARGET_NAME}
-	FILE "${CMAKE_CURRENT_BINARY_DIR}/${JSON_TARGETS_FILENAME}")
+export(TARGETS ${JSON_TARGET_NAME} FILE "${CMAKE_CURRENT_BINARY_DIR}/${JSON_TARGETS_FILENAME}")
 export(PACKAGE ${JSON_PACKAGE_NAME})
 
 # install library target and config files
-install(TARGETS ${JSON_TARGET_NAME}
-	EXPORT ${JSON_PACKAGE_NAME})
-install(FILES "src/json.hpp"
-	DESTINATION ${JSON_INCLUDE_DESTINATION})
-install(EXPORT ${JSON_PACKAGE_NAME}
-	FILE ${JSON_TARGETS_FILENAME}
-	DESTINATION ${JSON_CONFIG_DESTINATION})
+install(TARGETS ${JSON_TARGET_NAME} EXPORT ${JSON_PACKAGE_NAME})
+install(FILES "src/json.hpp" DESTINATION ${JSON_INCLUDE_DESTINATION})
+install(EXPORT ${JSON_PACKAGE_NAME} FILE ${JSON_TARGETS_FILENAME} DESTINATION ${JSON_CONFIG_DESTINATION})
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${JSON_CONFIG_FILENAME}"
-	"${CMAKE_CURRENT_BINARY_DIR}/${JSON_CONFIGVERSION_FILENAME}"
-	DESTINATION ${JSON_CONFIG_DESTINATION})
+  "${CMAKE_CURRENT_BINARY_DIR}/${JSON_CONFIGVERSION_FILENAME}"
+  DESTINATION ${JSON_CONFIG_DESTINATION})

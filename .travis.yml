@@ -248,7 +248,7 @@ script:
   - $CXX --version
 
   # call CMake
-  (mkdir cm && cd cm && cmake .. && cmake --build . && ctest --output-on-failure)
+  - (mkdir cm && cd cm && cmake .. && cmake --build . && ctest --output-on-failure)
 
   # check if homebrew works (only checks develop branch)
   - if [ `which brew` ]; then

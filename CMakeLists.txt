@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
-# define the project name, version, and language
-project(nlohmann_json VERSION 2.0.8 LANGUAGES CXX)
+# define the project
+project(nlohmann_json VERSION 2.0.9 LANGUAGES CXX)
 
 # enable testing for current directory and below (allows to execute ctest at
 # root directory)

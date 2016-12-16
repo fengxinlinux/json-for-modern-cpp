@@ -243,6 +243,7 @@ before_install:
   # install CMake on OSX
   - if [ $TRAVIS_OS_NAME = "osx" ]; then
     brew update ;
+    brew rm cmake --force;
     brew install cmake ;
     fi
 

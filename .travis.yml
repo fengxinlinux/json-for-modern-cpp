@@ -238,6 +238,14 @@ install:
        export PATH="${LLVM_DIR}/clang/bin:${PATH}"
      fi
 
+
+before_install:
+  # install CMake on OSX
+  - if [ $TRAVIS_OS_NAME = "osx" ]; then
+    brew update ;
+    brew install cmake ;
+    fi
+
 ################
 # build script #
 ################
@@ -250,8 +258,10 @@ script:
   # call CMake
   - (mkdir cm && cd cm && cmake .. && cmake --build . && ctest --output-on-failure)
 
+
+after_success:
   # check if homebrew works (only checks develop branch)
-  - if [ `which brew` ]; then
+  - if [ $TRAVIS_OS_NAME = "osx" ]; then
     brew update ;
     brew tap nlohmann/json ;
     brew install nlohmann_json --HEAD ;

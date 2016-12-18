@@ -34,6 +34,8 @@ matrix:
     env:
       - COMPILER=g++-4.9
       - SPECIAL=valgrind
+      - CMAKE_FLAGS=-DUseValgrind=ON
+      - CTEST_FLAGS="-L default"
     addons:
       apt:
         sources: ['ubuntu-toolchain-r-test']
@@ -254,7 +256,7 @@ script:
   - $CXX --version
 
   # call CMake
-  - (mkdir cm && cd cm && cmake .. && cmake --build . && ctest --output-on-failure)
+  - (mkdir cm && cd cm && cmake ${CMAKE_FLAGS} .. && cmake --build . && ctest ${CTEST_FLAGS} --output-on-failure)
 
 
 after_success:

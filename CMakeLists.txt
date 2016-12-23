@@ -3,6 +3,29 @@ cmake_minimum_required(VERSION 3.0)
 # define the project
 project(nlohmann_json VERSION 2.0.9 LANGUAGES CXX)
 
+#############################################################################
+
+# add Coveralls modules to path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/Coveralls)
+
+option(COVERALLS "Generate coveralls data" OFF)
+
+if (COVERALLS)
+    include(Coveralls)
+    coveralls_turn_on_coverage()
+
+    # which files to cover
+    set(COVERAGE_SRCS src/json.hpp)
+
+    # create the coveralls target
+    coveralls_setup(
+        "${COVERAGE_SRCS}"
+        ON
+        "${PROJECT_SOURCE_DIR}/cmake/Coveralls")
+endif()
+
+#############################################################################
+
 # enable testing for current directory and below (allows to execute ctest at
 # root directory)
 enable_testing()

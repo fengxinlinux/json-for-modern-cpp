@@ -80,6 +80,8 @@ matrix:
       - SPECIAL=coveralls
       - CMAKE_FLAGS="-DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug"
       - CTEST_FLAGS="-L all"
+      - export COVERALLS_SERVICE_NAME=travis-ci
+      - export COVERALLS_REPO_TOKEN=F9bs4Nop10JRgqPQXRcifyQKYhb3FczkS      
     after_success:
       - make coveralls -C cm
 

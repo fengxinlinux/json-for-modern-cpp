@@ -79,7 +79,7 @@ matrix:
       - COMPILER=g++-4.9
       - SPECIAL=coveralls
       - CMAKE_FLAGS="-DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug"
-      - CTEST_FLAGS="-L all"
+      - CTEST_FLAGS="-L nothing"
       - export COVERALLS_SERVICE_NAME=travis-ci
       - export COVERALLS_REPO_TOKEN=F9bs4Nop10JRgqPQXRcifyQKYhb3FczkS      
     after_success:

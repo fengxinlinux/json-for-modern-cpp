@@ -80,6 +80,8 @@ matrix:
       - SPECIAL=coveralls
       - CMAKE_FLAGS="-DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug"
       - CTEST_FLAGS="-L all"
+    after_success:
+      - make coveralls -C cm
 
   # Coverity (only for branch coverity_scan)
 

@@ -15,12 +15,6 @@ if(COVERALLS)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Weffc++ -Wcast-align -Wcast-qual -Wno-ctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-declarations -Wmissing-include-dirs -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-overflow=5 -Wswitch -Wundef -Wno-unused -Wnon-virtual-dtor -Wreorder -Wdeprecated -Wno-float-equal")
     endif()
 
-    add_test(NAME "${testcase}_default"
-      COMMAND ${testcase}
-      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    )
-    set_tests_properties("${testcase}_default" PROPERTIES LABELS "default")
-
     add_test(NAME "${testcase}_all"
       COMMAND ${testcase} "*"
       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}

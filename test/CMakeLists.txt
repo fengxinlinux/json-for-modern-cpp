@@ -1,10 +1,3 @@
-option(UseValgrind "Run the unit tests with Valgrind" OFF)
-if(UseValgrind)
-    set(test_prefix "valgrind --error-exitcode=1 --leak-check=full")
-else()
-    set(test_prefix "")
-endif()
-
 if(COVERALLS)
     file(GLOB files "src/unit-*.cpp")
     set(testcase "test-all")
@@ -23,13 +16,13 @@ if(COVERALLS)
     endif()
 
     add_test(NAME "${testcase}_default"
-      COMMAND ${test_prefix} ${testcase}
+      COMMAND ${testcase}
       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
     set_tests_properties("${testcase}_default" PROPERTIES LABELS "default")
 
     add_test(NAME "${testcase}_all"
-      COMMAND ${test_prefix} ${testcase} "*"
+      COMMAND ${testcase} "*"
       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     )
     set_tests_properties("${testcase}_all" PROPERTIES LABELS "all")
@@ -55,13 +48,13 @@ else()
         endif()
 
         add_test(NAME "${testcase}_default"
-          COMMAND ${test_prefix} ${testcase}
+          COMMAND ${testcase}
           WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         )
         set_tests_properties("${testcase}_default" PROPERTIES LABELS "default")
 
         add_test(NAME "${testcase}_all"
-          COMMAND ${test_prefix} ${testcase} "*"
+          COMMAND ${testcase} "*"
           WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         )
         set_tests_properties("${testcase}_all" PROPERTIES LABELS "all")

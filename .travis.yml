@@ -34,14 +34,12 @@ matrix:
     env:
       - COMPILER=g++-4.9
       - SPECIAL=valgrind
-      - CMAKE_FLAGS=-DUseValgrind=ON
-      - CTEST_FLAGS="-L default"
+      - CMAKE_FLAGS="-DCMAKE_BUILD_TYPE=Debug"
+      - CTEST_FLAGS="-T memcheck -L default"
     addons:
       apt:
         sources: ['ubuntu-toolchain-r-test']
         packages: [g++-4.9, valgrind]
-    after_success:
-      - make check TEST_PREFIX="valgrind --error-exitcode=1 --leak-check=full " TEST_PATTERN=""
 
   # cLang sanitizer
 

@@ -28,7 +28,12 @@ endif()
 
 # enable testing for current directory and below (allows to execute ctest at
 # root directory)
-enable_testing()
+#enable_testing()
+include (CTest)
+
+set(CTEST_MEMORYCHECK_TYPE Valgrind)
+set(CTEST_MEMORYCHECK_COMMAND, valgrind)
+set(CTEST_MEMORYCHECK_COMMAND_OPTIONS "--error-exitcode=1 --leak-check=full")
 
 option(BuildTests "Build the unit tests" ON)
 

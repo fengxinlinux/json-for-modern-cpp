@@ -1,7 +1,13 @@
+include_directories("thirdparty/catch")
+
+#############################################################################
+# unit tests
+#############################################################################
+
 if(COVERALLS)
     file(GLOB files "src/unit-*.cpp")
     set(testcase "test-all")
-    add_executable(${testcase} "src/catch.hpp" "src/unit.cpp" ${files})
+    add_executable(${testcase} "thirdparty/catch/catch.hpp" "src/unit.cpp" ${files})
     set_target_properties(${testcase} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED ON
@@ -26,7 +32,7 @@ else()
         get_filename_component(file_basename ${file} NAME_WE)
         string(REGEX REPLACE "unit-([^$]+)" "test-\\1" testcase ${file_basename})
 
-        add_executable(${testcase} "src/catch.hpp" ${file})
+        add_executable(${testcase} "thirdparty/catch/catch.hpp" ${file})
         set_target_properties(${testcase} PROPERTIES
             CXX_STANDARD 11
             CXX_STANDARD_REQUIRED ON
@@ -55,3 +61,34 @@ else()
 
     endforeach()
 endif()
+
+#############################################################################
+# fuzzer tests
+#############################################################################
+
+add_executable("parse_json_fuzzer" "src/fuzzer-driver_afl.cpp" "src/fuzzer-parse_json.cpp")
+set_target_properties("parse_json_fuzzer" PROPERTIES
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON
+    COMPILE_DEFINITIONS "$<$<CXX_COMPILER_ID:MSVC>:_SCL_SECURE_NO_WARNINGS>"
+    COMPILE_OPTIONS "$<$<CXX_COMPILER_ID:MSVC>:/EHsc;$<$<CONFIG:Release>:/Od>>"
+)
+target_link_libraries("parse_json_fuzzer" ${JSON_TARGET_NAME})
+
+add_executable("parse_cbor_fuzzer" "src/fuzzer-driver_afl.cpp" "src/fuzzer-parse_cbor.cpp")
+set_target_properties("parse_cbor_fuzzer" PROPERTIES
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON
+    COMPILE_DEFINITIONS "$<$<CXX_COMPILER_ID:MSVC>:_SCL_SECURE_NO_WARNINGS>"
+    COMPILE_OPTIONS "$<$<CXX_COMPILER_ID:MSVC>:/EHsc;$<$<CONFIG:Release>:/Od>>"
+)
+target_link_libraries("parse_cbor_fuzzer" ${JSON_TARGET_NAME})
+
+add_executable("parse_msgpack_fuzzer" "src/fuzzer-driver_afl.cpp" "src/fuzzer-parse_msgpack.cpp")
+set_target_properties("parse_msgpack_fuzzer" PROPERTIES
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON
+    COMPILE_DEFINITIONS "$<$<CXX_COMPILER_ID:MSVC>:_SCL_SECURE_NO_WARNINGS>"
+    COMPILE_OPTIONS "$<$<CXX_COMPILER_ID:MSVC>:/EHsc;$<$<CONFIG:Release>:/Od>>"
+)
+target_link_libraries("parse_msgpack_fuzzer" ${JSON_TARGET_NAME})

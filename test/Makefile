@@ -30,6 +30,7 @@ SOURCES = src/unit.cpp \
           src/unit-iterators2.cpp \
           src/unit-json_patch.cpp \
           src/unit-json_pointer.cpp \
+          src/unit-meta.cpp \
           src/unit-modifiers.cpp \
           src/unit-msgpack.cpp \
           src/unit-pointer_access.cpp \
@@ -37,8 +38,8 @@ SOURCES = src/unit.cpp \
           src/unit-reference_access.cpp \
           src/unit-regression.cpp \
           src/unit-serialization.cpp \
-          src/unit-unicode.cpp \
-          src/unit-testsuites.cpp
+          src/unit-testsuites.cpp \
+          src/unit-unicode.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 
@@ -74,7 +75,7 @@ test-%: src/unit-%.cpp ../src/json.hpp thirdparty/catch/catch.hpp
 	@echo "[CXXLD] $@"
 	@$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) -DCATCH_CONFIG_MAIN $< -o $@
 
-TEST_PATTERN = "*"
+TEST_PATTERN ?= "*"
 TEST_PREFIX = ""
 check: $(TESTCASES)
 	@cd .. ; for testcase in $(TESTCASES); do echo "Executing $$testcase..."; $(TEST_PREFIX)test/$$testcase $(TEST_PATTERN) || exit 1; done

@@ -263,6 +263,9 @@ const std::string tmp = j[0];
 j[1] = 42;
 bool foo = j.at(2);
 
+// comparison
+j == "[\"foo\", 1, true]"_json;  // true
+
 // other stuff
 j.size();     // 3 entries
 j.empty();    // false
@@ -276,9 +279,6 @@ j.is_number();
 j.is_object();
 j.is_array();
 j.is_string();
-
-// comparison
-j == "[\"foo\", 1, true]"_json;  // true
 
 // create an object
 json o;
@@ -521,7 +521,7 @@ The following compilers are currently used in continuous integration at [Travis]
 
 The class is licensed under the [MIT License](http://opensource.org/licenses/MIT):
 
-Copyright &copy; 2013-2016 [Niels Lohmann](http://nlohmann.me)
+Copyright &copy; 2013-2017 [Niels Lohmann](http://nlohmann.me)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -587,8 +587,9 @@ I deeply appreciate the help of the following people.
 - [Yixin Zhang](https://github.com/qwename) fixed an integer overflow check.
 - [Bosswestfalen](https://github.com/Bosswestfalen) merged two iterator classes into a smaller one.
 - [Daniel599](https://github.com/Daniel599) helped to get Travis execute the tests with Clang's sanitizers.
+- [Jonathan Lee](https://github.com/vjon) fixed an example in the README file.
 
-Thanks a lot for helping out!
+Thanks a lot for helping out! Please [let me know](mailto:mail@nlohmann.me) if I forgot someone.
 
 
 ## Notes
@@ -601,6 +602,8 @@ Thanks a lot for helping out!
   - [Unicode noncharacters](http://www.unicode.org/faq/private_use.html#nonchar1) will not be replaced by the library.
   - Invalid surrogates (e.g., incomplete pairs such as `\uDEAD`) will yield parse errors.
   - The strings stored in the library are UTF-8 encoded. When using the default string type (`std::string`), note that its length/size functions return the number of stored bytes rather than the number of characters or glyphs.
+- The code can be compiled without C++ **runtime type identification** features; that is, you can use the `-fno-rtti` compiler flag.
+- **Exceptions** are used widly within the library. They can, however, be switched off with either using the compiler flag `-fno-exceptions` or by defining the symbol `JSON_NOEXCEPTION`. In this case, exceptions are replaced by an `abort()` call.
 
 
 ## Execute unit tests
